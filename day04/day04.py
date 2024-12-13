@@ -15,113 +15,85 @@ def get_data():
         data = f.read().split("\n")
     return data
 
-def find_horizontal_pattern_count(data, pattern=PATTERN):
-    forward_count = 0
-    reverse_count = 0
+def find_horizontal_pattern_count(data, c_idx, r_idx):
+    puzzle_height = len(data)
+    puzzle_width = len(data[0])
     total = 0
-    for line in data:
-        # Use re.findall to extract all matches
-        forward_count = len(re.findall(pattern, line))
-        reverse_count = len(re.findall(pattern[::-1], line))
-        total += forward_count+ reverse_count
+    # Horizontal
+    if c_idx+3<puzzle_width and \
+            data[r_idx][c_idx]=='X' and \
+            data[r_idx][c_idx+1]=='M' and \
+            data[r_idx][c_idx+2]=='A' and \
+            data[r_idx][c_idx+3]=='S':
+        total += 1
+    # Horizontal reversed
+    if c_idx+3<puzzle_width and \
+            data[r_idx][c_idx]=='S' and\
+            data[r_idx][c_idx+1]=='A' and \
+            data[r_idx][c_idx+2]=='M' and \
+            data[r_idx][c_idx+3]=='X':
+        total += 1
     return total
 
-def find_vertical_pattern_count(data, pattern=PATTERN):
-    total = 0
+def find_vertical_pattern_count(data, c_idx, r_idx):
     puzzle_height = len(data)
-    for row in range(puzzle_height):
-        col = ""
-        for line in data:
-            col += line[row]
-        total += len(re.findall(pattern, col))
-        total += len(re.findall(pattern[::-1], col))
+    puzzle_width = len(data[0])
+    total = 0
+    # Vertical
+    if r_idx+3<puzzle_height and \
+            data[r_idx][c_idx]=='X' and \
+            data[r_idx+1][c_idx]=='M' and \
+            data[r_idx+2][c_idx]=='A' and \
+            data[r_idx+3][c_idx]=='S': 
+        total += 1
+    # Vertical reversed
+    if r_idx+3<puzzle_height and \
+            data[r_idx][c_idx]=='S' and \
+            data[r_idx+1][c_idx]=='A' and \
+            data[r_idx+2][c_idx]=='M' and \
+            data[r_idx+3][c_idx]=='X':
+        total += 1
     return total
 
-
-def find_fwd_diag_fwd_ptrn_cnt(data, r_idx, c_idx, pattern=PATTERN):
+def find_bkwd_diag_pattern_count(data, r_idx, c_idx):
     puzzle_height = len(data)
-    row_width = len(data[r_idx])
+    puzzle_width = len(data[0])
     total = 0
-    try:
-        if data[r_idx][c_idx] == pattern[0] and \
-            (r_idx + len(pattern)) <= puzzle_height and \
-            (c_idx - len(pattern)) <= row_width:
-            for p_idx in range(len(pattern)):
-                if data[r_idx+p_idx][c_idx-p_idx] != pattern[p_idx]:
-                    return total
-            total += 1
-            print("Found pattern at ({},{})".format(r_idx, c_idx))
-    except:
-        pass
+    # Backward diagonal
+    if r_idx-3>=0 and c_idx+3<puzzle_width and \
+                    data[r_idx][c_idx]=='X' and \
+                    data[r_idx-1][c_idx+1]=='M' and \
+                    data[r_idx-2][c_idx+2]=='A' and \
+                    data[r_idx-3][c_idx+3]=='S':
+        total += 1
+    # Backward diagonal reversed
+    if r_idx-3>=0 and c_idx+3<puzzle_width and \
+                    data[r_idx][c_idx]=='S' and \
+                    data[r_idx-1][c_idx+1]=='A' and \
+                    data[r_idx-2][c_idx+2]=='M' and \
+                    data[r_idx-3][c_idx+3]=='X':
+        total += 1
     return total
 
-def find_fwd_diag_bkwd_ptrn_cnt(data, r_idx, c_idx, pattern=PATTERN):
+def find_fwd_diag_pattern_count(data, r_idx, c_idx):
     puzzle_height = len(data)
-    row_width = len(data[r_idx])
+    puzzle_width = len(data[0])
     total = 0
-    try:
-        if data[r_idx][c_idx] == pattern[-1] and \
-            (r_idx + len(pattern)) <= puzzle_height and \
-            (c_idx - len(pattern)) <= row_width:
-            for p_idx in range(len(pattern)):
-                if data[r_idx+p_idx][c_idx-p_idx] != pattern[len(pattern)-p_idx]:
-                    return total
-            total += 1
-    except:
-        pass
-    return total
-
-def find_bkwd_diag_fwd_ptrn_cnt(data, r_idx, c_idx, pattern=PATTERN):
-    puzzle_height = len(data)
-    row_width = len(data[r_idx])
-    total = 0
-    try:
-        if data[r_idx][c_idx] == pattern[0] and \
-            (r_idx + len(pattern)) <= puzzle_height and \
-            (c_idx + len(pattern)) <= row_width:
-            for p_idx in range(len(pattern)):
-                if data[r_idx+p_idx][c_idx+p_idx] != pattern[p_idx]:
-                    return total
-            total += 1
-    except:
-        pass
-    return total
-
-def find_bkwd_diag_bkwd_ptrn_cnt(data, r_idx, c_idx, pattern=PATTERN):
-    puzzle_height = len(data)
-    row_width = len(data[r_idx])
-    total = 0
-    try:
-        if data[r_idx][c_idx] == pattern[-1] and \
-            (r_idx + len(pattern)) <= puzzle_height and \
-            (c_idx + len(pattern)) <= row_width:
-            for p_idx in range(len(pattern)):
-                if data[r_idx+p_idx][c_idx+p_idx] != pattern[len(pattern)-p_idx]:
-                    return total
-            total += 1
-    except:
-        pass
-    return total
-
-def find_diag_pattern_count(data, pattern=PATTERN):
-    '''
-    Adjust data for forward diagonal
-    For each row, remove the first character, 
-    then add a peiod at the end.
-    '''
-    puzzle_height = len(data)
-    total = 0
-
-    # For each row, find the first or last character of PATTERN
-    for r_idx in range(puzzle_height):
-        row_width = len(data[r_idx])
-        for c_idx in range(row_width):
-            # Find 
-            total += find_fwd_diag_fwd_ptrn_cnt(data, r_idx, c_idx, pattern)
-            total += find_fwd_diag_bkwd_ptrn_cnt(data, r_idx, c_idx, pattern)
-            total += find_bkwd_diag_fwd_ptrn_cnt(data, r_idx, c_idx, pattern)
-            total += find_bkwd_diag_bkwd_ptrn_cnt(data, r_idx, c_idx, pattern)
-
+    # Forward diagonal
+    if r_idx+3<puzzle_height and c_idx+3<puzzle_width and \
+            data[r_idx][c_idx]=='X' and \
+            data[r_idx+1][c_idx+1]=='M' and \
+            data[r_idx+2][c_idx+2]=='A' and \
+            data[r_idx+3][c_idx+3]=='S':
+        total += 1
+    # Forward diagonal reversed
+    if r_idx+3<puzzle_height and \
+            c_idx+3<puzzle_width and \
+            data[r_idx][c_idx]=='S' and \
+            data[r_idx+1][c_idx+1]=='A' and \
+            data[r_idx+2][c_idx+2]=='M' and \
+            data[r_idx+3][c_idx+3]=='X':
+        total += 1
     return total
 
 
@@ -129,12 +101,16 @@ def solve(data):
     '''
     Count the number of safe reports.
     '''
-    total=0
-    total += find_horizontal_pattern_count(data)
-    total += find_vertical_pattern_count(data)
-    total += find_diag_pattern_count(data)
-    # total += find_fwd_diag_pattern_count(data)
-    # total += find_bkwd_diag_pattern_count(data)
+    puzzle_height = len(data)
+    total = 0
+    for r_idx in range(puzzle_height):
+        row_width = len(data[r_idx])
+        for c_idx in range(row_width):
+            total += find_horizontal_pattern_count(data, c_idx, r_idx)
+            total += find_vertical_pattern_count(data, c_idx, r_idx)
+            total += find_fwd_diag_pattern_count(data, r_idx, c_idx)
+            total += find_bkwd_diag_pattern_count(data, r_idx, c_idx)
+
     return total
 
 def __main__():
