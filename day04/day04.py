@@ -2,6 +2,7 @@ import os
 import re
 
 PATTERN = 'XMAS'
+DEBUG = False
 
 def get_data():
     '''
@@ -15,96 +16,76 @@ def get_data():
         data = f.read().split("\n")
     return data
 
-def find_horizontal_pattern_count(data, c_idx, r_idx):
+def find_horizontal_pattern_count(data, c_idx, r_idx, pattern=PATTERN):
     puzzle_height = len(data)
-    puzzle_width = len(data[0])
     total = 0
-    if r_idx+len(PATTERN)>puzzle_height:
+    list_of_coordinates = []
+    if c_idx+len(pattern)<=puzzle_height:
         # Horizontal
         pattern_found = True
-        for p_idx, p_char in enumerate(PATTERN):
+        for p_idx, p_char in enumerate(pattern):
             if data[r_idx][c_idx+p_idx] != p_char:
                 pattern_found = False
                 break
+            else:
+                list_of_coordinates.append((r_idx, c_idx+p_idx))
         if pattern_found:
             total += 1
-        # Horizontal reversed
-        pattern_found = True
-        for p_idx, p_char in enumerate(reversed(PATTERN)):
-            if data[r_idx][c_idx+p_idx] != p_char:
-                pattern_found = False
-                break
-        if pattern_found:
-            total += 1
+            if DEBUG: print("Horizontal pattern found at: ", list_of_coordinates)
     return total
 
-def find_vertical_pattern_count(data, c_idx, r_idx):
+def find_vertical_pattern_count(data, c_idx, r_idx, pattern=PATTERN):
     puzzle_height = len(data)
-    puzzle_width = len(data[0])
     total = 0
-    if r_idx+len(PATTERN)>puzzle_height:
+    list_of_coordinates = []
+    if r_idx+len(pattern)<=puzzle_height:
         # Vertical
         pattern_found = True
-        for p_idx, p_char in enumerate(PATTERN):
+        for p_idx, p_char in enumerate(pattern):
             if data[r_idx+p_idx][c_idx] != p_char:
                 pattern_found = False
                 break
+            else:
+                list_of_coordinates.append((r_idx+p_idx, c_idx))
         if pattern_found:
             total += 1
-        # Vertical reversed
-        pattern_found = True
-        for p_idx, p_char in enumerate(reversed(PATTERN)):
-            if data[r_idx+p_idx][c_idx] != p_char:
-                pattern_found = False
-                break
-        if pattern_found:
-            total += 1
+            if DEBUG: print("Vertical pattern found at: ", list_of_coordinates)
     return total
 
-def find_bkwd_diag_pattern_count(data, r_idx, c_idx):
-    puzzle_height = len(data)
+def find_bkwd_diag_pattern_count(data, r_idx, c_idx, pattern=PATTERN):
     puzzle_width = len(data[0])
     total = 0
-    if r_idx-len(PATTERN)>0 and c_idx+len(PATTERN)<puzzle_width:
+    list_of_coordinates = []
+    if r_idx-len(pattern)>=0 and c_idx+len(pattern)<=puzzle_width:
         # Backward diagonal
         pattern_found = True
-        for p_idx, p_char in enumerate(PATTERN):
-            if data[r_idx-len(PATTERN)][c_idx+p_idx] != p_char:
+        for p_idx, p_char in enumerate(pattern):
+            if data[r_idx-p_idx][c_idx+p_idx] != p_char:
                 pattern_found = False
                 break
+            else:
+                list_of_coordinates.append((r_idx-p_idx, c_idx+p_idx))
         if pattern_found:
             total += 1
-        # Backward diagonal reversed
-        pattern_found = True
-        for p_idx, p_char in enumerate(reversed(PATTERN)):
-            if data[r_idx-len(PATTERN)][c_idx+p_idx] != p_char:
-                pattern_found = False
-                break
-        if pattern_found:
-            total += 1
+            if DEBUG: print("Forward diagonal pattern found at: ", list_of_coordinates)
     return total
 
-def find_fwd_diag_pattern_count(data, r_idx, c_idx):
-    puzzle_height = len(data)
+def find_fwd_diag_pattern_count(data, r_idx, c_idx, pattern=PATTERN):
     puzzle_width = len(data[0])
     total = 0
-    if r_idx+len(PATTERN)>0 and c_idx+len(PATTERN)<puzzle_width:
+    list_of_coordinates = []
+    if r_idx+len(pattern)<=puzzle_width and c_idx+len(pattern)<=puzzle_width:
         # Forward diagonal
         pattern_found = True
-        for p_idx, p_char in enumerate(PATTERN):
+        for p_idx, p_char in enumerate(pattern):
             if data[r_idx+p_idx][c_idx+p_idx] != p_char:
                 pattern_found = False
                 break
+            else:
+                list_of_coordinates.append((r_idx+p_idx, c_idx+p_idx))
         if pattern_found:
             total += 1
-        # Forward diagonal reversed
-        pattern_found = True
-        for p_idx, p_char in enumerate(reversed(PATTERN)):
-            if data[r_idx+p_idx][c_idx+p_idx] != p_char:
-                pattern_found = False
-                break
-        if pattern_found:
-            total += 1
+            if DEBUG: print("Reverse diagonal pattern found at: ", list_of_coordinates)
     return total
 
 
@@ -117,10 +98,12 @@ def solve(data):
     for r_idx in range(puzzle_height):
         row_width = len(data[r_idx])
         for c_idx in range(row_width):
-            total += find_horizontal_pattern_count(data, c_idx, r_idx)
-            total += find_vertical_pattern_count(data, c_idx, r_idx)
-            total += find_fwd_diag_pattern_count(data, r_idx, c_idx)
-            total += find_bkwd_diag_pattern_count(data, r_idx, c_idx)
+            # Check pattern and reverse pattern.
+            for pattern in [PATTERN, PATTERN[::-1]]:
+                total += find_horizontal_pattern_count(data, c_idx, r_idx, pattern)
+                total += find_vertical_pattern_count(data, c_idx, r_idx, pattern)
+                total += find_fwd_diag_pattern_count(data, r_idx, c_idx, pattern)
+                total += find_bkwd_diag_pattern_count(data, r_idx, c_idx, pattern)
 
     return total
 
